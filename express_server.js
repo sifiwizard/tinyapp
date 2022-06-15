@@ -12,6 +12,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+
+}
+
 const generateRandomString = function() {
   let rString = "";
   let i = 0;
@@ -98,6 +102,16 @@ app.post("/login" , (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
+  res.redirect("/urls");
+});
+
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  users[id] = { id, email, password };
+  console.log(users[id]);
+  res.cookie('user_id', id);
   res.redirect("/urls");
 });
 
