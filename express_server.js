@@ -34,18 +34,27 @@ const generateRandomString = function() {
   return rString;
 };
 
+const lookup = (users, email) => {
+  for (const user in users) {
+    if (email === users[user].email) {
+      return false;
+    }
+  }
+  return true;
+}
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieParser());
 
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
+  const templateVars = { user_id: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]};
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user_id: users[req.cookies["user_id"]]};
   res.render("urls_show", templateVars);
 });
 
@@ -56,12 +65,12 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const templateVars = { urls: urlDatabase, user_id: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
 app.get("/register", (req, res) => {
-  res.render("register", { username: req.cookies['username'] })
+  res.render("register", { user_id: users[req.cookies["user_id"]] })
 });
 
 app.get("/", (req, res) => {
@@ -109,6 +118,12 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  if(!email || !password){
+    res.status(400).send('Invalid Entry');
+  }
+  if (!lookup(users, email)) {
+    res.status(400).send('Email taken');
+  }
   users[id] = { id, email, password };
   console.log(users[id]);
   res.cookie('user_id', id);
