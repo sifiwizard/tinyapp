@@ -16,10 +16,8 @@
         <button class="btn btn-default">Logout</button> 
       </form>
     <% } else { %>
-      <form method="post" action="/login">
-        <input type="text" name="username">
-        <button class="btn btn-default">Login</button>
-      </form>
+      <a class="nav-item nav-link" href="/register">Register</a>
+      <a class="nav-item nav-link" href="/login">Login</a>
     <% } %>
   </nav>
 </header>

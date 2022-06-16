@@ -34,13 +34,16 @@ const generateRandomString = function() {
   return rString;
 };
 
-const lookup = (users, email) => {
+const lookup = (users, email, password= null) => {
   for (const user in users) {
     if (email === users[user].email) {
+      if (password === users[user].password) {
+        return users[user];
+      }
       return false;
     }
   }
-  return true;
+  return "empty";
 }
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -72,6 +75,10 @@ app.get("/urls", (req, res) => {
 app.get("/register", (req, res) => {
   res.render("register", { user_id: users[req.cookies["user_id"]] })
 });
+
+app.get("/login", (req, res) => {
+  res.render("login", { user_id: users[req.cookies["user_id"]] })
+})
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -105,12 +112,21 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login" , (req, res) => {
-  res.cookie("username", req.body.username);
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = lookup(users, email, password);
+  if (user === "empty"){
+    res.status(403).send("Email Not Found")
+  }
+  if (!user) {
+    res.status(403).send("Incorrect Password")
+  }
+  res.cookie("user_id", user.id);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -121,7 +137,7 @@ app.post("/register", (req, res) => {
   if(!email || !password){
     res.status(400).send('Invalid Entry');
   }
-  if (!lookup(users, email)) {
+  if (lookup(users, email) !== "empty") {
     res.status(400).send('Email taken');
   }
   users[id] = { id, email, password };
