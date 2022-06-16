@@ -55,6 +55,16 @@ const lookup = (users, email, password = null) => {
   return "empty";
 };
 
+const urlsForUser = id => {
+  let URLs = {}
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      URLs[url] = urlDatabase[url];
+    }
+  }
+  return URLs
+}
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieParser());
@@ -69,6 +79,10 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (urlDatabase[req.params.shortURL].userID !== req.cookies["user_id"]) {
+    res.status(403).send("ShortURL Unavalible");
+    return false;
+  }
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user_id: users[req.cookies["user_id"]]};
   res.render("urls_show", templateVars);
 });
@@ -84,7 +98,8 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user_id: users[req.cookies["user_id"]] };
+  const urls = urlsForUser(req.cookies["user_id"])
+  const templateVars = { urls, user_id: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
@@ -127,6 +142,10 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
+  if (urlDatabase[shortURL].userID !== req.cookies["user_id"]) {
+    res.status(403).send("ShortURL Unavalible");
+    return false;
+  }
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
@@ -134,6 +153,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const longURL = req.body.longURL;
   const id = req.params.id;
+  if (urlDatabase[id].userID !== req.cookies["user_id"]) {
+    res.status(403).send("ShortURL Unavalible");
+    return false;
+  }
   urlDatabase[id].longURL = longURL;
   res.redirect("/urls");
 });
