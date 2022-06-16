@@ -28,7 +28,7 @@
           <form method="POST" action="/urls/<%= url %>/delete"> <% url %>
           <tr>
             <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url].longURL %></td>
             <td><button class="btn btn-danger">Delete</button></td>
             <td><a class="btn btn-warning" href="/urls/<%= url %>">Edit<% url %></a></td>
           </tr>
