@@ -2,8 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-let cookieParser = require('cookie-parser');
-
+const cookieParser = require('cookie-parser');
+const {hasher, comparer} = require('./crypt');
 
 app.set("view engine", "ejs");
 
@@ -17,11 +17,13 @@ const urlDatabase = {
   }
 };
 
+const testHash = hasher("1111")
+
 const users = {
   "IIII" : {
   id: "IIII",
   email: "test@test",
-  password: "1111"
+  password: testHash
   },
 };
 
@@ -43,10 +45,11 @@ const generateRandomString = function() {
   return rString;
 };
 
-const lookup = (users, email, password = null) => {
+const lookup = (users, email, password = false) => {
+  console.log(email,password);
   for (const user in users) {
     if (email === users[user].email) {
-      if (password === users[user].password) {
+      if (password && comparer(password, users[user].password)) {
         return users[user];
       }
       return false;
@@ -185,7 +188,7 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
-  const password = req.body.password;
+  let password = req.body.password;
   if (!email || !password) {
     res.status(400).send('Invalid Entry');
     return false;
@@ -194,6 +197,7 @@ app.post("/register", (req, res) => {
     res.status(400).send('Email taken');
     return false;
   }
+  password = hasher(password);
   users[id] = { id, email, password };
   console.log(users[id]);
   res.cookie('user_id', id);
