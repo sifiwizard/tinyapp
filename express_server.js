@@ -18,7 +18,11 @@ app.use(cookieSession({ //Encryption for user cookies
   keys: ['black', 'white', 'red']
 }));
 
-const urlDatabase = { //Test data-bases and users
+//
+//// Test data and users
+//
+
+const urlDatabase = { 
   "b2xVn2": {
     longURL : "http://www.lighthouselabs.ca",
     userID : "IIII"},
