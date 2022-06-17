@@ -14,7 +14,7 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieSession({ //Encryption for user cookies
-  name : 'user_id',
+  name : 'userID',
   keys: ['black', 'white', 'red']
 }));
 
@@ -43,23 +43,23 @@ const users = {
 //
 
 app.get("/", (req, res) => {
-  if (!req.session.user_id) { //Checks if user is logged out, directs to login.
+  if (!req.session.userID) { //Checks if user is logged out, directs to login.
     res.redirect("/login");
   }
   res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
-  const urls = urlsForUser(req.session.user_id, urlDatabase);
-  const templateVars = { urls, user_id: users[req.session.user_id] };
+  const urls = urlsForUser(req.session.userID, urlDatabase);
+  const templateVars = { urls, userID: users[req.session.userID] };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  if (!req.session.user_id) {
+  if (!req.session.userID) {
     res.redirect("/login");
   }
-  const templateVars = { user_id: users[req.session.user_id] };
+  const templateVars = { userID: users[req.session.userID] };
   res.render("urls_new", templateVars);
 });
 
@@ -67,13 +67,13 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) { //Evalutes in order; If Url exists, If user is logged in, If url belongs to user.
     return res.status(404).send("Url Not Found");
   }
-  if (!req.session.user_id) {
+  if (!req.session.userID) {
     return res.status(401).send("User Not Logged In");
   }
-  if (urlDatabase[req.params.shortURL].userID !== req.session.user_id) {
+  if (urlDatabase[req.params.shortURL].userID !== req.session.userID) {
     return res.status(403).send("Forbidden Action");
   }
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user_id: users[req.session.user_id]};
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userID: users[req.session.userID]};
   res.render("urls_show", templateVars);
 });
 
@@ -87,17 +87,17 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  if (req.session.user_id) { //If user logged in directs to urls
+  if (req.session.userID) { //If user logged in directs to urls
     res.redirect("/urls");
   }
-  res.render("login", { user_id: users[req.session.user_id] });
+  res.render("login", { userID: users[req.session.userID] });
 });
 
 app.get("/register", (req, res) => {
-  if (req.session.user_id) {
+  if (req.session.userID) {
     res.redirect("/urls");
   }
-  res.render("register", { user_id: users[req.session.user_id] });
+  res.render("register", { userID: users[req.session.userID] });
 });
 
 //
@@ -105,10 +105,10 @@ app.get("/register", (req, res) => {
 //
 
 app.post("/urls", (req, res) => {
-  if (!req.session.user_id) {
+  if (!req.session.userID) {
     return res.status(401).send("User Not Logged In");
   }
-  const userID = req.session.user_id;
+  const userID = req.session.userID;
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {longURL : req.body.longURL, userID}; //Combines random string and longUrl to make new short url key value pair, user id is the same as current logged in user
   res.redirect(`/urls/${shortURL}`);
@@ -119,10 +119,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   if (!urlDatabase[shortURL]) { //Evalutes in order; If Url exists, If user is logged in, If url belongs to user.
     return res.status(404).send("Url Not Found");
   }
-  if (!req.session.user_id) {
+  if (!req.session.userID) {
     return res.status(401).send("User Not Logged In");
   }
-  if (urlDatabase[shortURL].userID !== req.session.user_id) {
+  if (urlDatabase[shortURL].userID !== req.session.userID) {
     return res.status(403).send("Forbidden Action");
   }
   delete urlDatabase[shortURL]; //Deletes shourtURL Index
@@ -134,10 +134,10 @@ app.post("/urls/:id", (req, res) => {
   if (!urlDatabase[id]) { //Evalutes in order; If Url exists, If user is logged in, If url belongs to user.
     return res.status(404).send("Url Not Found");
   }
-  if (!req.session.user_id) {
+  if (!req.session.userID) {
     return res.status(401).send("User Not Logged In");
   }
-  if (urlDatabase[id].userID !== req.session.user_id) {
+  if (urlDatabase[id].userID !== req.session.userID) {
     return res.status(403).send("Forbidden Action");
   }
   const longURL = req.body.longURL;
@@ -155,7 +155,7 @@ app.post("/login" , (req, res) => {
   if (!comparer(password, user.password)) { //Compares password and hash
     return res.status(403).send("Incorrect Password");
   }
-  req.session.user_id = user.id; //Sets cookies to user id
+  req.session.userID = user.id; //Sets cookies to user id
   res.redirect("/urls");
 });
 
@@ -176,7 +176,7 @@ app.post("/register", (req, res) => {
   }
   password = hasher(password); //Hashes password, promptly forgets original.
   users[id] = { id, email, password }; //Sets users with id, email and password hash
-  req.session.user_id = id; //Sets cookies to user id
+  req.session.userID = id; //Sets cookies to user id
   res.redirect("/urls");
 });
 
